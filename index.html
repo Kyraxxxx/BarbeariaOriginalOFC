@@ -567,9 +567,11 @@
                 });
 
                 window.dispatchEvent(new Event('storage'));
+                verificaJaAgendado();
             });
         }
         checaNovos();
+        verificaJaAgendado();
 
         // Mostra o balaozinho de aviso
         function soltaAviso(msg, icon = "✨") {
@@ -612,11 +614,38 @@
             vaiPra('meus_agendamentos.html');
         }
 
-        // Abre e fecha os cortes
+        // Muda visual pro corte
         document.getElementById('btn-servicos').addEventListener('click', () => {
             const taOn = document.getElementById('deck-menu').classList.toggle('show');
             document.getElementById('seta-deck').style.transform = taOn ? 'rotate(180deg)' : 'rotate(0deg)';
         });
+
+        // Verifica se o cliente já tem agendamento ativo
+        function verificaJaAgendado() {
+            const bd = JSON.parse(localStorage.getItem('db_agenda') || '[]');
+            const meus = bd.filter(a => a.clientId === id_atual);
+            const btnEnvio = document.getElementById('btn-envio');
+            const btnServicos = document.getElementById('btn-servicos');
+            const btnDesmarcar = document.getElementById('btn-desmarcar');
+
+            if (meus.length > 0) {
+                // Trava o botão de agendar
+                btnEnvio.innerHTML = '<span>Agendado</span><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                btnEnvio.style.background = 'rgba(0, 255, 120, 0.2)';
+                btnEnvio.style.color = '#00ff78';
+                btnEnvio.style.borderColor = 'rgba(0, 255, 120, 0.4)';
+                btnEnvio.classList.add('agendado-ja');
+                document.getElementById('input-nome').disabled = true;
+                document.getElementById('input-hora').disabled = true;
+
+                // Troca o botão de corte por "Visualize Seu Agendamento"
+                btnServicos.innerHTML = '<span>Visualize Seu Agendamento</span><svg class="svg-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                btnServicos.onclick = () => pulaPraAgenda();
+                btnServicos.style.background = 'rgba(255,255,255,0.06)';
+                btnDesmarcar.style.display = 'none';
+                document.getElementById('deck-menu').classList.remove('show');
+            }
+        }
 
         // Quando o cara clica num corte
         function bateuOCorte(el) {
